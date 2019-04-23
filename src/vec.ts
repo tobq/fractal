@@ -13,4 +13,41 @@ export default class Vec {
             this.y + operand.y
         );
     }
+
+    minus(operand: Vec) {
+        return new Vec(
+            this.x - operand.x,
+            this.y - operand.y
+        );
+    }
+
+    multiply(operand: Vec) {
+        return new Vec(
+            this.x * operand.x,
+            this.y * operand.y
+        );
+    }
+
+    divide(operand: Vec) {
+        return new Vec(
+            this.x / operand.x,
+            this.y / operand.y
+        );
+    }
+
+    divideScalar(operand: number) {
+        return this.divide(new Vec(operand, operand));
+    }
+
+    multiplyScalar(operand: number) {
+        return this.multiply(new Vec(operand, operand));
+    }
+
+    length() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
+    unit(operand: Vec) {
+        return this.divideScalar(this.length());
+    }
 }
