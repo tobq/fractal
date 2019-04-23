@@ -2,8 +2,9 @@
   "name": "fractal",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "webpack.config.js",
   "scripts": {
+    "start": "webpack --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +16,14 @@
   "bugs": {
     "url": "https://github.com/tobq/fractal/issues"
   },
-  "homepage": "https://github.com/tobq/fractal#readme"
+  "homepage": "https://github.com/tobq/fractal#readme",
+  "dependencies": {
+    "preact": "^8.4.2",
+    "ts-loader": "^5.4.3",
+    "typescript": "^3.4.5",
+    "webpack": "^4.30.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.3.1"
+  }
 }
