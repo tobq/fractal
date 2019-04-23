@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./public",
+    "outDir": "./public/js",
     "target": "es5",
     "noImplicitAny": true,
     "removeComments": true,
