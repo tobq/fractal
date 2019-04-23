@@ -47,7 +47,11 @@ export default class Vec {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
-    unit(operand: Vec) {
+    unit() {
         return this.divideScalar(this.length());
+    }
+
+    equals(vec: Vec) {
+        return this.x === vec.x && this.y === vec.y;
     }
 }
