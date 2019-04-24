@@ -32,5 +32,16 @@
     gl_Position = vec4(rotatedPosition * uScalingFactor, 0.0, 1.0);
   }
 </script>
+<script id="fragment-shader" type="x-shader/x-fragment">
+    #ifdef GL_ES
+    precision highp float;
+    #endif
+
+    uniform vec4 uGlobalColor;
+
+    void main() {
+        gl_FragColor = uGlobalColor;
+    }
+</script>
 </body>
 </html>
