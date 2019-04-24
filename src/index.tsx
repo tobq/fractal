@@ -17,18 +17,19 @@ export default class Fractal extends Component<Props> {
 
 
     draw() {
-        let gl = this.canvas.getContext("webgl");
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        let gl = this.canvas.getContext("2d");
+        gl.clearRect(0, 0, this.props.width, this.props.height);
+        // gl.clear(gl.COLOR_BUFFER_BIT);
         const size = new Vec(this.props.width, this.props.height);
         let centre = size.divideScalar(2);
         for (let x = this.props.width; x--;)
             for (let y = this.props.height; y--;) {
                 let z = new Vec(x, y).minus(centre).divideScalar(100);
-                let iterationsLeft = Fractal.MAX_ITERATIONS;
-                while (z.x * z.x + z.y * z.y < 4 && iterationsLeft-- > 1) {
+
+                for (let i = Fractal.MAX_ITERATIONS; i--;)
                     z = new Vec(z.x * z.x - z.y * z.y, 2 * z.x * z.y).plus(this.props.constant);
-                }
-                gl.fillStyle = `rgba(0, 0, 0, ${iterationsLeft / Fractal.MAX_ITERATIONS})`;
+
+                gl.fillStyle = `rgba(0, 0, 0, ${(1 - 1 / (1 + z.length()))})`;
                 // console.log(gl.fillStyle);
                 gl.fillRect(x, y, 1, 1);
             }
@@ -55,19 +56,24 @@ export default class Fractal extends Component<Props> {
 
 const main = document.querySelector("section");
 const SIZE = 600;
-document.addEventListener("mousemove", e => {
+
+function rerender(vec: Vec) {
+    render(<Fractal
+        height={SIZE}
+        width={SIZE}
+        constant={vec}
+    />, main, main.lastElementChild);
+}
+
+document.addEventListener("click", e => {
     let size = new Vec(SIZE, SIZE);
     let newConstant = new Vec(e.pageX, e.pageY)
         .minus(size.divideScalar(2))
         .divide(size)
         .multiplyScalar(2);
 
-    // newConstant = new Vec(0, 0);
-    console.log(    newConstant);
-
-    render(<Fractal
-        height={SIZE}
-        width={SIZE}
-        constant={newConstant}
-    />, main, main.lastElementChild);
+    console.log(newConstant);
+    rerender(newConstant);
 });
+
+rerender(new Vec(0, 0));
