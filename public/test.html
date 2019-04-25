@@ -1,0 +1,136 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script id="vertexshader" type="x-shader/x-vertex">
+        attribute vec2 aVertexPosition;
+        varying vec2 pos;
+
+        uniform float uScalingFactor;
+        uniform vec2 uOffsetVector;
+        uniform vec2 uCanvasSize;
+
+        void main() {
+            gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+            vec2 mouse = (uOffsetVector - uCanvasSize / 2.) / uCanvasSize;
+            pos = (aVertexPosition  + mouse)* uScalingFactor;
+        }
+    </script>
+    <script id="fragmentshader" type="x-shader/x-fragment">
+        #ifdef GL_ES
+        precision highp float;
+        #endif
+
+        uniform vec4 uColor;
+        varying vec2 pos;
+
+        void main() {
+            vec2 z = pos;
+            vec2 Z = pos;
+            for (int i = 0; i < 100; i++) {
+                //             z = new Vec(z.x * z.x - z.y * z.y, 2 * z.x * z.y).plus(zOriginal);
+                //                z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + zOriginal;
+                //                z = vec2(z.x * z.x - z.y * z.y, 2. * z.x * z.y);
+                z = vec2(z.x * z.x - z.y * z.y, 2. * z.x * z.y)+Z;
+                //                if (length(z) > 4.) break;
+            }
+            gl_FragColor = vec4(0, 0, 0, exp(-length(z)));
+            //            gl_FragColor = vec4(0, 0, 0, 1. / (1. + length(z)));
+        }
+    </script>
+    <script type="text/javascript">
+
+        let uScalingFactor;
+        let currentScale = 1;
+        let uOffsetVector;
+        let uCanvasSize;
+        const ZOOM_SPEED = 1.5;
+
+        function main() {
+            let canvas;
+            let gl;
+            canvas = document.getElementById("canvas");
+            gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+            if (!gl) throw new Error("WebGL not supported");
+            // Setup Shaders:
+            var v = document.getElementById("vertexshader").firstChild.nodeValue;
+            var f = document.getElementById("fragmentshader").firstChild.nodeValue;
+
+            var vs = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vs, v);
+            gl.compileShader(vs);
+
+            if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS))
+                console.error(gl.getShaderInfoLog(vs));
+
+            var fs = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fs, f);
+            gl.compileShader(fs);
+
+            if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS))
+                console.error(gl.getShaderInfoLog(fs));
+
+            program = gl.createProgram();
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+
+
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS))
+                console.error(gl.getProgramInfoLog(program));
+
+            // Setup Geometry
+            var vertices = new Float32Array([
+                -1, 1, 1, 1, 1, -1,  // Triangle 1
+                -1, 1, 1, -1, -1, -1   // Triangle 2
+            ]);
+
+            vbuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vbuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+            itemSize = 2; // we have 2 triangles!
+            numItems = vertices.length / itemSize;
+
+            // Viewport
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearColor(0, 0, 0, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            // Setup Geometry:
+            gl.useProgram(program);
+
+            program.uColor = gl.getUniformLocation(program, "uColor");
+            gl.uniform4fv(program.uColor, [0.5, 0.0, 0.0, 1.0]);
+
+            program.aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
+            gl.enableVertexAttribArray(program.aVertexPosition);
+            gl.vertexAttribPointer(program.aVertexPosition, itemSize, gl.FLOAT, false, 0, 0);
+
+            // Draw:
+            gl.drawArrays(gl.TRIANGLES, 0, numItems);
+
+            uScalingFactor = gl.getUniformLocation(program, "uScalingFactor");
+            uOffsetVector = gl.getUniformLocation(program, "uOffsetVector");
+            uCanvasSize = gl.getUniformLocation(program, "uCanvasSize");
+
+            gl.uniform1f(uScalingFactor, currentScale);
+            gl.uniform2fv(uOffsetVector, [0, 0]);
+            gl.uniform2fv(uCanvasSize, [canvas.width, canvas.height]);
+
+            canvas.addEventListener("mousemove", e => {
+                gl.uniform2fv(uOffsetVector, [canvas.width - e.pageX, e.pageY]);
+                gl.drawArrays(gl.TRIANGLES, 0, numItems);
+            });
+            canvas.addEventListener("wheel", e => {
+                currentScale *= ZOOM_SPEED ** (e.deltaY / 100);
+                gl.uniform1f(uScalingFactor, currentScale);
+                gl.drawArrays(gl.TRIANGLES, 0, numItems);
+            });
+        }
+
+    </script>
+</head>
+<body onload="main()" style="margin: 0;">
+<canvas id="canvas" width="512" height="512"></canvas>
+</body>
+</html>
