@@ -1,4 +1,4 @@
-import {Component, h, render} from "preact";
+import {Component, h} from "preact";
 import Vec from "./vec";
 
 interface Props {
@@ -20,27 +20,30 @@ export default class Fractal extends Component<Props> {
 
 
     draw() {
+        console.log(this.props.zoom);
         const width = this.props.width;
         const height = this.props.height;
+        const centre = new Vec(width, height).divideScalar(2);
 
         let gl = this.canvas.getContext("2d");
         let imageData = gl.createImageData(width, height);
         // gl.clear(gl.COLOR_BUFFER_BIT);
         for (let x = width; x--;)
             for (let y = height; y--;) {
-                let z = new Vec(x, y).minus(this.props.offset).divideScalar(this.props.zoom);
+                let z = new Vec(x, y).minus(centre).divideScalar(this.props.zoom).minus(this.props.offset);
                 const zOriginal = z;
                 let base = (y * width + x) * 4;
 
                 let iterationsLeft = Fractal.MAX_ITERATIONS;
                 while (iterationsLeft-- > 1) {
-                    z = new Vec(z.x * z.x - z.y * z.y, 2 * z.x * z.y).plus(zOriginal);
-                    // z = new Vec(z.x * z.x - z.y * z.y, 2 * z.x * z.y).plus(this.props.constant);
+                    // z = new Vec(z.x * z.x - z.y * z.y, 2 * z.x * z.y).plus(zOriginal);
+                    z = new Vec(z.x * z.x - z.y * z.y, 2 * z.x * z.y).plus(this.props.constant);
                     if (z.x * z.x + z.y + z.y > 8) {
                         break;
                     }
                 }
                 // imageData.data[base + 3] = 255 / (1 + z.length());
+                // imageData.data[base + 3] = 255 * Math.E ** z.length();
                 imageData.data[base + 3] = 255 * iterationsLeft / Fractal.MAX_ITERATIONS;
                 // imageData.data[base + 3] = 255 / (1 + z.x * z.x + z.y + z.y);
             }
@@ -55,9 +58,14 @@ export default class Fractal extends Component<Props> {
         if (!this.props.constant.equals(nextProps.constant) ||
             this.props.zoom != nextProps.zoom ||
             !this.props.offset.equals(nextProps.offset)) {
-            this.draw();
+            // this.draw();
+            return true;
         }
         return false;
+    }
+
+    componentDidUpdate(previousProps: Readonly<Props>, previousState: Readonly<{}>, previousContext: any): void {
+        this.draw()
     }
 
     render() {
